@@ -221,4 +221,4 @@ It generates an annual revenue of ${results['Revenue (USD)']:,.2f} ({results['Re
 The payback period is {results['Payback Period (Years)']:.2f} years. 
 {feed_status}
 Risks include milk and tomato price fluctuations (±10%), disease outbreaks (e.g., foot-and-mouth disease), and seasonal feed shortages (winter yield drop of 10-15%). Mitigations include securing long-term buyer contracts, implementing biosecurity, and storing silage. The farm is energy self-sufficient via biogas, with surplus electricity enhancing revenue.
-""")s
+""")
