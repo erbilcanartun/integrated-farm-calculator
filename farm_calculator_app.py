@@ -152,7 +152,9 @@ def calculate_farm_metrics(cows, deeded_ha, grassland_ha, greenhouse_ha):
         "Tomato Revenue Year": tomato_revenue_year,
         "Electricity Revenue Year": electricity_revenue_year,
         "Purchased Feed Kg": purchased_feed_kg,
-        "Electricity Purchase Cost Year": electricity_purchase_cost_year
+        "Electricity Purchase Cost Year": electricity_purchase_cost_year,
+        "Shortfall Kwh Year": shortfall_kwh_day * 365,
+        "Purchased Feed Cost Year": cost_feed
     }, warning
 
 # Perform calculations
@@ -201,7 +203,7 @@ st.table(df_basic)
 #         f"${results['Daily Costs']['Maintenance (USD)']:.2f}",
 #         f"${results['Daily Costs']['Electricity Purchase (USD)']:.2f}"
 #     ],
-#     "TRY/day": [value * usd_to_try for value in USD/day values]
+#     "TRY/day": [value * usd_to_try for value in USD/day values] # Adjust accordingly
 # }
 # st.table(pd.DataFrame(daily_costs_data))
 
@@ -271,12 +273,15 @@ financial_summary_table = {
 df_financial_summary = pd.DataFrame(financial_summary_table)
 st.table(df_financial_summary)
 
-# Paragraph: Feed and Energy Status
-feed_status = "Self-sufficient in feed." if results['Purchased Feed Kg'] == 0 else f"Requires purchasing {results['Purchased Feed Kg']:,.0f} kg of feed annually at ${results['Daily Costs']['Feed (USD)'] * 365:,.2f} USD/year."
-energy_status = "Energy self-sufficient with surplus electricity for revenue." if results['Daily Products']['Shortfall Electricity (kWh/day)'] == 0 else f"Requires purchasing {results['Daily Products']['Shortfall Electricity (kWh/day)'] * 365:,.0f} kWh electricity annually at ${results['Electricity Purchase Cost Year']:,.2f} USD/year."
-st.write(f"""
+# Paragraph: Feed and Energy Status - Fixed spacing in status strings
+feed_status = "Self-sufficient in feed." if results['Purchased Feed Kg'] == 0 else f"Requires purchasing {results['Purchased Feed Kg']:,.0f} kg of feed annually at ${results['Purchased Feed Cost Year']:,.2f} USD/year."
+energy_status = "Energy self-sufficient with surplus electricity for revenue." if results['Daily Products']['Shortfall Electricity (kWh/day)'] == 0 else f"Requires purchasing {results['Shortfall Kwh Year']:,.0f} kWh of electricity annually at ${results['Electricity Purchase Cost Year']:,.2f} USD/year."
+st.markdown(f"""
 **Feed Status:** {feed_status}  
-**Energy Status:** {energy_status} The farm uses biogas for on-site electricity, selling surplus at {electricity_sell_price_usd} USD/kWh and purchasing any shortfall at {electricity_purchase_price_usd} USD/kWh.
+
+**Energy Status:** {energy_status}  
+
+The farm uses biogas for on-site electricity, selling surplus at ${electricity_sell_price_usd:.2f} USD/kWh and purchasing any shortfall at ${electricity_purchase_price_usd:.2f} USD/kWh.
 """)
 
 # List: Risks and Mitigations (using Markdown for bullets)
