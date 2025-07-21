@@ -281,7 +281,7 @@ st.markdown(f"""
 
 **Energy Status:** {energy_status}  
 
-The farm uses biogas for on-site electricity, selling surplus at ${electricity_sell_price_usd:.2f} USD/kWh and purchasing any shortfall at ${electricity_purchase_price_usd:.2f} USD/kWh.
+The farm uses biogas for on-site electricity, selling surplus at ${electricity_sell_price_usd:.2f}$ USD/kWh and purchasing any shortfall at ${electricity_purchase_price_usd:.2f}$ USD/kWh.
 """)
 
 # List: Risks and Mitigations (using Markdown for bullets)
