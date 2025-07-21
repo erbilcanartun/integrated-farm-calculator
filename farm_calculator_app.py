@@ -8,7 +8,7 @@ st.title("Integrated Farm Calculator")
 
 # Input section - Expanded with editable constants for flexibility
 st.header("Input Farm Parameters")
-num_cows = st.number_input("Number of Cows", min_value=10, max_value=500, value=60, step=10)  # Number of dairy cows; affects milk, manure, feed needs.
+num_cows = st.number_input("Number of Cows", min_value=10, max_value=500, value=100, step=10)  # Number of dairy cows; affects milk, manure, feed needs. Default set to 100 as requested.
 deeded_land = st.number_input("Deeded Land (hectares, includes greenhouse, barn, etc.)", min_value=10, max_value=200, value=51, step=5)  # Total farm land; must suffice for allocations.
 grassland_area = st.number_input("Grassland Area (hectares, for grazing/hay)", min_value=0, max_value=200, value=35, step=5)  # Area for pasture; limited by deeded land.
 greenhouse_area = st.number_input("Greenhouse Area (hectares, soilless)", min_value=0.5, max_value=10.0, value=1.5, step=0.5)  # Hydroponic tomato area; high yield but energy-intensive.
@@ -24,7 +24,8 @@ vs_fraction = st.number_input("Volatile Solids Fraction of Manure", value=0.096)
 biogas_yield_m3_kg = st.number_input("Biogas Yield (m³/kg VS)", value=0.3)  # From anaerobic digestion; range 0.2-0.45.
 energy_per_m3_kwh = st.number_input("Energy per m³ Biogas (kWh)", value=6.0)  # Heating value; 5-7 average.
 electrical_efficiency = st.number_input("CHP Electrical Efficiency", value=0.35)  # Conversion to electricity; 35-42% typical.
-electricity_price_usd = st.number_input("Electricity Price (USD/kWh)", value=0.1)  # Selling price for surplus.
+electricity_sell_price_usd = st.number_input("Electricity Sell Price (USD/kWh)", value=0.1)  # Selling price for surplus; often lower than purchase price.
+electricity_purchase_price_usd = st.number_input("Electricity Purchase Price (USD/kWh)", value=0.15)  # New: Purchase price for shortfall; typically higher than sell price.
 feed_dm_per_cow_kg = st.number_input("Annual Feed DM per Cow (kg)", value=6570.0)  # Dry matter intake; ~18 kg/day * 365.
 grassland_yield_kg_ha = st.number_input("Grassland Yield (kg DM/ha/year)", value=5250.0)  # Pasture/hay production; depends on soil/climate.
 feed_crop_yield_kg_ha = st.number_input("Feed Crop Yield (kg DM/ha/year)", value=15000.0)  # E.g., silage corn; high-yield crops.
@@ -55,39 +56,29 @@ def calculate_farm_metrics(cows, deeded_ha, grassland_ha, greenhouse_ha):
     total_feed_kg = pasture_feed_kg + crop_feed_kg
     purchased_feed_kg = max(0, feed_needed_kg - total_feed_kg)  # Buy if short; costed below.
 
-    # Initial investment costs: Scaled to base 60-cow farm; cows and greenhouse variable.
-    cost_cows = cows * 3000  # Improved: $3,000/cow realistic in 2025.
+    # Initial investment costs: Scaled to base 60-cow farm; but cows and greenhouse variable.
+    cost_cows = cows * 3000.0  # Improved: $3,000/cow realistic in 2025.
     cost_greenhouse = greenhouse_ha * greenhouse_cost_per_ha  # High due to hydroponic tech.
-    cost_infrastructure = 80000 * (cows / 60)  # Roads, fencing, etc.
-    cost_bioenergy = 50000 * (cows / 60)  # Biogas plant.
-    cost_equipment = 30000 * (cows / 60)  # Milking, tractors.
-    cost_supplies = 10000 * (cows / 60)  # Initial stock.
+    cost_infrastructure = 80000.0 * (cows / 60)  # Roads, fencing, etc.
+    cost_bioenergy = 50000.0 * (cows / 60)  # Biogas plant.
+    cost_equipment = 30000.0 * (cows / 60)  # Milking, tractors.
+    cost_supplies = 10000.0 * (cows / 60)  # Initial stock.
     total_investment = cost_cows + cost_greenhouse + cost_infrastructure + cost_bioenergy + cost_equipment + cost_supplies
 
-    # Annual operating costs: Variable with scale; labor shared between dairy/greenhouse.
+    # Annual operating costs: Variable with scale; labor shared between dairy/green.
     cost_feed = purchased_feed_kg * purchased_feed_cost_usd
-    cost_labor = 36000 * (cows / 60 + greenhouse_ha / 1.5) / 2
-    cost_vet = cows * 50
-    cost_utilities = 5000 * (cows / 60)
-    cost_marketing = 3000 * (cows / 60)
-    cost_greenhouse_ops = 10000 * (greenhouse_ha / 1.5)
-    cost_maintenance = 5000 * (cows / 60)
-    total_costs = cost_feed + cost_labor + cost_vet + cost_utilities + cost_marketing + cost_greenhouse_ops + cost_maintenance
-
-    # Daily operating costs: For granular view; assumes uniform year.
-    daily_cost_feed = cost_feed / 365
-    daily_cost_labor = cost_labor / 365
-    daily_cost_vet = cost_vet / 365
-    daily_cost_utilities = cost_utilities / 365
-    daily_cost_marketing = cost_marketing / 365
-    daily_cost_greenhouse = cost_greenhouse_ops / 365
-    daily_cost_maintenance = cost_maintenance / 365
-
+    cost_labor = 36000.0 * (cows / 60 + greenhouse_ha / 1.5)
+    cost_vet = cows * 50.0
+    cost_utilities = 5000.0 * (cows / 60)
+    cost_marketing = 3000.0 * (cows / 60)
+    cost_greenhouse_ops = 10000.0 * (greenhouse_ha / 1.5)
+    cost_maintenance = 5000.0 * (cows / 60)
+    
     # Products and revenue: Daily then annualized.
     milk_liters_day = cows * milk_yield_liters  # Daily production.
     milk_revenue_year = milk_liters_day * 365 * milk_price_usd
     milk_revenue_day = milk_liters_day * milk_price_usd
-    tomato_kg_day = greenhouse_ha * tomato_yield_tons_ha * 1000 / 365  # Assumes continuous harvest.
+    tomato_kg_day = greenhouse_ha * tomato_yield_tons_ha * 1000 / 365
     tomato_revenue_year = tomato_kg_day * 365 * tomato_price_usd
     tomato_revenue_day = tomato_kg_day * tomato_price_usd
     manure_kg_day = cows * manure_per_cow_kg
@@ -96,11 +87,25 @@ def calculate_farm_metrics(cows, deeded_ha, grassland_ha, greenhouse_ha):
     electricity_kwh_day = biogas_m3_day * energy_per_m3_kwh * electrical_efficiency  # Via CHP system.
     farm_electricity_need_kwh_day = (cows * farm_elec_per_cow_kwh_year / 365) + (greenhouse_ha * gh_elec_per_ha_kwh_year / 365)  # On-farm consumption.
     surplus_kwh_day = max(0, electricity_kwh_day - farm_electricity_need_kwh_day)  # Sellable excess.
-    electricity_revenue_year = surplus_kwh_day * 365 * electricity_price_usd
-    electricity_revenue_day = surplus_kwh_day * electricity_price_usd
+    shortfall_kwh_day = max(0, farm_electricity_need_kwh_day - electricity_kwh_day)  # New: Shortfall to purchase if production insufficient.
+    electricity_revenue_year = surplus_kwh_day * 365 * electricity_sell_price_usd  # Revenue from surplus.
+    electricity_revenue_day = surplus_kwh_day * electricity_sell_price_usd
+    electricity_purchase_cost_year = shortfall_kwh_day * 365 * electricity_purchase_price_usd  # New: Added to costs if shortfall.
     total_revenue_year = milk_revenue_year + tomato_revenue_year + electricity_revenue_year
-    total_revenue_day = milk_revenue_day + tomato_revenue_day + electricity_revenue_day
     
+    # Update total costs with electricity purchase if any
+    total_costs = cost_feed + cost_labor + cost_vet + cost_utilities + cost_marketing + cost_greenhouse_ops + cost_maintenance + electricity_purchase_cost_year
+
+    # Daily operating costs: For granular view; assumes uniform year. Add electricity purchase daily.
+    daily_cost_feed = cost_feed / 365
+    daily_cost_labor = cost_labor / 365
+    daily_cost_vet = cost_vet / 365
+    daily_cost_utilities = cost_utilities / 365
+    daily_cost_marketing = cost_marketing / 365
+    daily_cost_greenhouse = cost_greenhouse_ops / 365
+    daily_cost_maintenance = cost_maintenance / 365
+    daily_cost_electricity_purchase = shortfall_kwh_day * electricity_purchase_price_usd  # New daily cost.
+
     # Profit and payback: Basic metrics.
     annual_profit = total_revenue_year - total_costs
     payback_period = total_investment / annual_profit if annual_profit > 0 else float('inf')
@@ -128,7 +133,8 @@ def calculate_farm_metrics(cows, deeded_ha, grassland_ha, greenhouse_ha):
             "Utilities (USD)": daily_cost_utilities,
             "Marketing (USD)": daily_cost_marketing,
             "Greenhouse Ops (USD)": daily_cost_greenhouse,
-            "Maintenance (USD)": daily_cost_maintenance
+            "Maintenance (USD)": daily_cost_maintenance,
+            "Electricity Purchase (USD)": daily_cost_electricity_purchase  # New.
         },
         "Daily Products": {
             "Milk (liters/day)": milk_liters_day,
@@ -138,24 +144,26 @@ def calculate_farm_metrics(cows, deeded_ha, grassland_ha, greenhouse_ha):
             "Electricity Produced (kWh/day)": electricity_kwh_day,
             "Electricity Consumed (kWh/day)": farm_electricity_need_kwh_day,
             "Surplus Electricity (kWh/day)": surplus_kwh_day,
-            "Surplus Electricity (USD/day)": electricity_revenue_day
+            "Surplus Electricity (USD/day)": electricity_revenue_day,
+            "Shortfall Electricity (kWh/day)": shortfall_kwh_day  # New: For display.
         },
         "Projections": {"Years": years, "Revenue": revenue_projections, "Costs": cost_projections, "Profit": profit_projections},
         "Milk Revenue Year": milk_revenue_year,
         "Tomato Revenue Year": tomato_revenue_year,
         "Electricity Revenue Year": electricity_revenue_year,
-        "Purchased Feed Kg": purchased_feed_kg
+        "Purchased Feed Kg": purchased_feed_kg,
+        "Electricity Purchase Cost Year": electricity_purchase_cost_year
     }, warning
 
 # Perform calculations
 results, warning = calculate_farm_metrics(num_cows, deeded_land, grassland_area, greenhouse_area)
 
-# Display results
 if warning:
     st.warning(warning)
+
 st.header("Farm Metrics")
-    
-# Basic Results Table - Fixed TRY order
+
+# Basic Results Table - Updated to reflect new costs
 st.subheader("Basic Financial Results")
 table_data = {
     "Metric": ["Initial Investment", "Annual Operating Costs", "Annual Revenue", "Annual Profit", "Payback Period"],
@@ -177,14 +185,34 @@ table_data = {
 df_basic = pd.DataFrame(table_data)
 st.table(df_basic)
 
-# ... (Other tables similar; omitted for brevity, but add TRY calculations as before)
+# ... (Other tables similar; omitted for brevity, but add TRY calculations as before. Update daily costs table to include Electricity Purchase.)
 
-# New: Pie Charts
+# For example, here's an updated Daily Costs Table snippet:
+# st.subheader("Daily Operating Costs")
+# daily_costs_data = {
+#     "Category": ["Feed", "Labor", "Veterinary", "Utilities", "Marketing", "Greenhouse Operations", "Maintenance", "Electricity Purchase"],
+#     "USD/day": [
+#         f"${results['Daily Costs']['Feed (USD)']:.2f}",
+#         f"${results['Daily Costs']['Labor (USD)']:.2f}",
+#         f"${results['Daily Costs']['Veterinary (USD)']:.2f}",
+#         f"${results['Daily Costs']['Utilities (USD)']:.2f}",
+#         f"${results['Daily Costs']['Marketing (USD)']:.2f}",
+#         f"${results['Daily Costs']['Greenhouse Ops (USD)']:.2f}",
+#         f"${results['Daily Costs']['Maintenance (USD)']:.2f}",
+#         f"${results['Daily Costs']['Electricity Purchase (USD)']:.2f}"
+#     ],
+#     "TRY/day": [value * usd_to_try for value in USD/day values]
+# }
+# st.table(pd.DataFrame(daily_costs_data))
+
+# Similar updates for annual costs (add electricity purchase), daily products (add shortfall).
+
+# New: Pie Charts (updated with electricity revenue if positive)
 st.subheader("Revenue Breakdown")
-fig_pie_rev = px.pie(names=['Milk', 'Tomatoes', 'Electricity'], 
-                     values=[results['Milk Revenue Year'], results['Tomato Revenue Year'], results['Electricity Revenue Year']],
+fig_rev_pie = px.pie(names=['Milk', 'Tomatoes', 'Electricity Surplus'],
+                     values=[results['Milk Revenue Year'], results['Tomato Revenue Year'], results['Electricity Revenue Year'] if results['Electricity Revenue Year'] > 0 else 0],
                      title="Annual Revenue Sources")
-st.plotly_chart(fig_pie_rev)
+st.plotly_chart(fig_rev_pie)
 
 st.subheader("Cost Breakdown")
 costs_dict = {
@@ -194,10 +222,11 @@ costs_dict = {
     'Utilities': results['Daily Costs']['Utilities (USD)'] * 365,
     'Marketing': results['Daily Costs']['Marketing (USD)'] * 365,
     'Greenhouse Ops': results['Daily Costs']['Greenhouse Ops (USD)'] * 365,
-    'Maintenance': results['Daily Costs']['Maintenance (USD)'] * 365
+    'Maintenance': results['Daily Costs']['Maintenance (USD)'] * 365,
+    'Electricity Purchase': results['Daily Costs']['Electricity Purchase (USD)'] * 365
 }
-fig_pie_cost = px.pie(names=list(costs_dict.keys()), values=list(costs_dict.values()), title="Annual Operating Costs")
-st.plotly_chart(fig_pie_cost)
+fig_cost_pie = px.pie(names=list(costs_dict.keys()), values=list(costs_dict.values()), title="Annual Operating Costs")
+st.plotly_chart(fig_cost_pie)
 
 # Projections Chart (as before)
 st.subheader("5-Year Financial Projections")
@@ -212,13 +241,49 @@ fig = px.line(projection_data, x="Year", y=["Revenue (USD)", "Costs (USD)", "Pro
               labels={"value": "Amount (USD)", "variable": "Metric"})
 st.plotly_chart(fig)
 
-# Summary text - Enhanced with purchased feed
-feed_status = "Self-sufficient in feed." if results['Purchased Feed Kg'] == 0 else f"Requires purchasing {results['Purchased Feed Kg']:,.0f} kg of feed annually at ${results['Daily Costs']['Feed (USD)'] * 365:,.2f}."
+# Improved Summary and Insights: Reorganized with paragraphs, list, and table for better structure
 st.header("Summary and Insights")
+
+# Paragraph: Overview
 st.write(f"""
-The integrated farm with {num_cows} cows, a {greenhouse_area} ha soilless greenhouse, {grassland_area} ha of grassland, and {deeded_land} ha of deeded land requires an initial investment of ${results['Investment (USD)']:,.2f} ({results['Investment (TRY)']:,.2f} TRY). 
-It generates an annual revenue of ${results['Revenue (USD)']:,.2f} ({results['Revenue (TRY)']:,.2f} TRY) from milk, tomatoes, and surplus electricity, with operating costs of ${results['Operating Costs (USD)']:,.2f} ({results['Operating Costs (TRY)']:,.2f} TRY), yielding an annual profit of ${results['Profit (USD)']:,.2f} ({results['Profit (TRY)']:,.2f} TRY). 
-The payback period is {results['Payback Period (Years)']:.2f} years. 
-{feed_status}
-Risks include milk and tomato price fluctuations (±10%), disease outbreaks (e.g., foot-and-mouth disease), and seasonal feed shortages (winter yield drop of 10-15%). Mitigations include securing long-term buyer contracts, implementing biosecurity, and storing silage. The farm is energy self-sufficient via biogas, with surplus electricity enhancing revenue.
+The integrated farm with {num_cows} cows, a {greenhouse_area} ha soilless greenhouse, {grassland_area} ha of grassland, and {deeded_land} ha of deeded land is designed for sustainable operation through dairy, vegetable, and energy production integration.
+""")
+
+# Table: Financial Summary
+st.subheader("Financial Summary")
+financial_summary_table = {
+    "Metric": ["Initial Investment", "Annual Revenue", "Annual Operating Costs", "Annual Profit", "Payback Period"],
+    "USD": [
+        f"${results['Investment (USD)']:,.2f}",
+        f"${results['Revenue (USD)']:,.2f}",
+        f"${results['Operating Costs (USD)']:,.2f}",
+        f"${results['Profit (USD)']:,.2f}",
+        f"{results['Payback Period (Years)']:.2f} years"
+    ],
+    "TRY": [
+        f"{results['Investment (TRY)']:,.2f}",
+        f"{results['Revenue (TRY)']:,.2f}",
+        f"{results['Operating Costs (TRY)']:,.2f}",
+        f"{results['Profit (TRY)']:,.2f}",
+        f"{results['Payback Period (Years)']:.2f} years"
+    ]
+}
+df_financial_summary = pd.DataFrame(financial_summary_table)
+st.table(df_financial_summary)
+
+# Paragraph: Feed and Energy Status
+feed_status = "Self-sufficient in feed." if results['Purchased Feed Kg'] == 0 else f"Requires purchasing {results['Purchased Feed Kg']:,.0f} kg of feed annually at ${results['Daily Costs']['Feed (USD)'] * 365:,.2f} USD/year."
+energy_status = "Energy self-sufficient with surplus electricity for revenue." if results['Daily Products']['Shortfall Electricity (kWh/day)'] == 0 else f"Requires purchasing {results['Daily Products']['Shortfall Electricity (kWh/day)'] * 365:,.0f} kWh electricity annually at ${results['Electricity Purchase Cost Year']:,.2f} USD/year."
+st.write(f"""
+**Feed Status:** {feed_status}  
+**Energy Status:** {energy_status} The farm uses biogas for on-site electricity, selling surplus at {electricity_sell_price_usd} USD/kWh and purchasing any shortfall at {electricity_purchase_price_usd} USD/kWh.
+""")
+
+# List: Risks and Mitigations (using Markdown for bullets)
+st.subheader("Risks and Mitigations")
+st.markdown("""
+- **Price Fluctuations (Milk and Tomatoes, ±10%):** Secure long-term buyer contracts to stabilize income.
+- **Disease Outbreaks (e.g., Foot-and-Mouth Disease):** Implement biosecurity measures, vaccination, and regular veterinary checks.
+- **Seasonal Feed Shortages (Winter Yield Drop of 10-15%):** Store surplus silage from summer and diversify feed sources.
+- **Energy Variability:** Monitor biogas production; consider backup renewable sources like solar if shortfalls are frequent.
 """)
