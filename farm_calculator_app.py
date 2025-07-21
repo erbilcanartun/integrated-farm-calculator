@@ -274,8 +274,8 @@ df_financial_summary = pd.DataFrame(financial_summary_table)
 st.table(df_financial_summary)
 
 # Paragraph: Feed and Energy Status - Fixed spacing in status strings
-feed_status = "Self-sufficient in feed." if results['Purchased Feed Kg'] == 0 else f"Requires purchasing {results['Purchased Feed Kg']:,.0f} kg of feed annually at ${results['Purchased Feed Cost Year']:,.2f} USD/year."
-energy_status = "Energy self-sufficient with surplus electricity for revenue." if results['Daily Products']['Shortfall Electricity (kWh/day)'] == 0 else f"Requires purchasing {results['Shortfall Kwh Year']:,.0f} kWh of electricity annually at ${results['Electricity Purchase Cost Year']:,.2f} USD/year."
+feed_status = "Self-sufficient in feed." if results['Purchased Feed Kg'] == 0 else f"Requires purchasing {results['Purchased Feed Kg']:,.0f} kg of feed annually at {results['Purchased Feed Cost Year']:,.2f} USD/year."
+energy_status = "Energy self-sufficient with surplus electricity for revenue." if results['Daily Products']['Shortfall Electricity (kWh/day)'] == 0 else f"Requires purchasing {results['Shortfall Kwh Year']:,.0f} kWh of electricity annually at {results['Electricity Purchase Cost Year']:,.2f} USD/year."
 st.markdown(f"""
 **Feed Status:** {feed_status}  
 
