@@ -1,127 +1,67 @@
 # Integrated Farm Calculator
 
-## Overview
-The **Integrated Farm Calculator** is a web application built with [Streamlit](https://streamlit.io/) to assist in planning a self-sufficient farm in Turkey. It takes user inputs such as the number of cows, greenhouse area, and total land area, and calculates key financial metrics, including initial investment, annual operating costs, revenue, profit, and payback period. The app also provides 5-year financial projections and visualizes them with an interactive plot. Calculations are performed using Python, leveraging data from a 60-cow farm model with biogas production and a soilless greenhouse for tomatoes.
+## Overview and Insight
+The **Integrated Farm Calculator** is a Streamlit-based web application designed to model and optimize an integrated sustainable farm system. It combines dairy farming (with customizable allocation to milk, cheese, or cream), soilless (hydroponic) greenhouse production for various crops, and biogas energy generation from cow manure. By inputting parameters like cow numbers, land areas, and constants (e.g., yields, prices), users can simulate farm operations, calculate financial metrics (investment, costs, revenues, profit, payback), and view 5-year projections. The app emphasizes synergies: manure fuels biogas for electricity (covering on-farm needs, selling surplus, or purchasing shortfalls), while diversified products reduce risks.
 
-### Features
-- **Inputs:** Number of cows (10–500), greenhouse area (0.5–10 ha), total land area (10–200 ha).
-- **Outputs:**
-  - **Table:** Initial investment, annual costs, revenue, profit, and payback period in USD and TRY (1 USD = 40 TRY).
-  - **Plot:** 5-year projections for revenue, costs, and profit using Plotly.
-  - **Summary Text:** Overview of financial metrics and risk insights.
-- **Backend:** Python calculations for costs, revenues, biogas energy, and projections.
-- **Deployment:** Hosted on Streamlit Community Cloud for remote access.
+This tool provides insights into self-sufficiency—balancing feed production, energy independence, and income diversification—for mid-to-small scale farms (e.g., 100 cows, 1.5 ha greenhouse). Defaults use mid-range values for realism (e.g., 25 L milk/cow/day, 300 tons/ha tomato yield), but all are editable. It's ideal for farmers, planners, or educators to explore scenarios, highlighting trade-offs like high greenhouse energy demands vs. revenue potential. Limitations include simplified assumptions (e.g., no detailed seasonality or taxes); use for initial planning, not final decisions.
 
-### Assumptions
-- Based on a 60-cow farm model with Holstein-Friesian cows (25 liters/cow/day, $0.4/liter milk).
-- Soilless greenhouse produces 100 tons/ha/year of tomatoes ($0.125/kg).
-- Biogas from manure generates electricity ($0.1/kWh surplus).
-- Costs and revenues scale linearly from the base model.
-- Projections assume 2% annual revenue growth and 3% cost growth.
+## Features
+- **Full Farm Simulator**: Comprehensive model with land allocation, feed checks, dairy/greenhouse revenues, biogas energy, financial tables, pie charts (revenue/cost breakdowns), line plots (projections), and insights (risks/mitigations).
+- **Isolated Calculations**: Standalone tools for biogas energy from cows (daily/monthly/yearly kWh) or greenhouse energy consumption.
+- **Customizable Inputs**: Dairy allocation sliders; crop selection (Tomato, Lettuce, Strawberry, Cucumber); editable constants with range guidance (low/mid/high) in labels.
+- **Error Handling**: Validates dairy % sum; warns on land insufficiency.
+- **Visuals**: Interactive Plotly charts; formatted tables in USD/TRY.
+
+![Screenshot of the App](figures/screenshot.png)
+
+## Summary of Factors and Parameters
+The app integrates factors like land use, feed, production, energy, and finances. Defaults are mid-values; labels show ranges for guidance (e.g., adjust for optimistic/pessimistic scenarios).
+
+### Key Factors
+- **Land & Feed**: Allocates deeded land to pasture, crops, greenhouse, buildings; checks self-sufficiency, costs purchases if short.
+- **Dairy**: Milk production allocatable to raw milk, cheese, cream; revenues from yields/prices.
+- **Greenhouse**: Crop-specific yields/prices; high energy needs but year-round output.
+- **Energy**: Manure to biogas/electricity; nets surplus (revenue) or shortfall (cost).
+- **Financials**: Scaled investments/ops costs; revenues from products/energy; profit, payback, projections (2% revenue/3% cost growth).
+- **Insights**: Feed/energy status; risks (prices, diseases, seasonality) with mitigations.
+
+### Parameters (Defaults; Ranges in Labels)
+- **Currency**: USD/TRY rate (40; 30-50)
+- **Dairy**: Milk yield (25 L/cow/day; 20-30), Milk price (0.4 USD/L; 0.3-0.5), Cheese price (5 USD/kg; 4-6), Cream price (3 USD/kg; 2-4)
+- **Greenhouse (Crop-Varies)**: Yield (e.g., Tomato: 300 tons/ha/year; 100-600), Price (e.g., Tomato: 0.25 USD/kg; 0.1-0.4)
+- **Biogas/Energy**: Manure/cow (60 kg/day; 40-80), VS fraction (0.096; 0.08-0.12), Biogas yield (0.3 m³/kg VS; 0.2-0.45), Energy/m³ (6 kWh; 5-7), Efficiency (0.35; 0.3-0.4), Sell price (0.1 USD/kWh; 0.08-0.12), Purchase price (0.15 USD/kWh; 0.12-0.18)
+- **Feed**: DM/cow/year (6570 kg; 6000-7000), Grassland yield (5250 kg DM/ha/year; 4000-6500), Crop yield (15000 kg DM/ha/year; 12000-18000), Purchased cost (0.1 USD/kg DM; 0.08-0.12)
+- **Costs**: Greenhouse construction (500000 USD/ha; 300000-700000), Farm electricity (500 kWh/cow/year; 400-600), Greenhouse electricity (1000000 kWh/ha/year; 500000-1500000)
 
 ## Installation
-To run the app locally, follow these steps:
+To run locally:
 
-### Prerequisites
-- Python 3.8+
-- Git (for cloning the repository)
-- A code editor (e.g., VS Code)
+1. Install Python 3.8+ and dependencies:
+'pip install streamlit pandas plotly numpy'
 
-### Steps
-1. **Clone the Repository:**
-   ```bash
-   git clone https://github.com/your-username/integrated-farm-calculator.git
-   cd integrated-farm-calculator
-   ```
+3. Save code as `app.py` and run:
+'streamlit run app.py'
 
-2. **Install Dependencies:**
-   Create a virtual environment and install required packages:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   pip install -r requirements.txt
-   ```
-
-3. **Run the App Locally:**
-   ```bash
-   streamlit run farm_calculator_app.py
-   ```
-   The app will open in your browser at `http://localhost:8501`.
-
-### Requirements
-The `requirements.txt` file includes:
-```
-streamlit
-pandas
-plotly
-numpy
-```
 
 ## Usage
-1. **Access the App:**
-   - Locally: Run the app as described above.
-   - Remotely: Visit the deployed app URL (e.g., `https://your-app-name.streamlit.app`) after deployment.
-2. **Enter Inputs:**
-   - Number of cows (e.g., 60).
-   - Greenhouse area in hectares (e.g., 1.5).
-   - Total land area in hectares (e.g., 50).
-3. **View Outputs:**
-   - **Table:** Displays financial metrics in USD and TRY.
-   - **Plot:** Shows 5-year projections for revenue, costs, and profit.
-   - **Summary Text:** Provides investment, profit, payback period, and risk insights.
-4. **Error Handling:** If the land area is insufficient for the specified cows and greenhouse, an error message is displayed.
+- **Full Tab**: Input parameters, allocate dairy, select crop, tweak constants. View tables/charts/summary.
+- **Isolated Tab**: Compute energy production (cows) or consumption (greenhouse) separately.
+- Browser-based; updates live.
 
 ## Deployment
-To make the app accessible from another computer without running code locally, deploy it to **Streamlit Community Cloud**:
-
-1. **Create a GitHub Repository:**
-   - Push the project files (`farm_calculator_app.py`, `requirements.txt`) to a public GitHub repository.
-
-2. **Sign Up for Streamlit Community Cloud:**
-   - Go to [Streamlit Community Cloud](https://streamlit.io/cloud) and sign in with GitHub.
-
-3. **Deploy the App:**
-   - Connect your repository to Streamlit Community Cloud.
-   - Select the `farm_calculator_app.py` file as the main script.
-   - Deploy the app, which will generate a public URL (e.g., `https://your-app-name.streamlit.app`).
-
-4. **Access Remotely:**
-   - Share the URL with users to access the app from any device with a browser.
+Deploy to Streamlit Community Cloud:
+1. Push to GitHub (include `app.py`, `requirements.txt`).
+2. Sign in at streamlit.io/cloud, link repo, deploy for public URL.
 
 ## Project Structure
-```
-integrated-farm-calculator/
-│
-├── farm_calculator_app.py  # Main Streamlit app code
-├── requirements.txt        # Python dependencies
-└── README.md              # This file
-```
-
-## Example Output
-For inputs: 60 cows, 1.5 ha greenhouse, 50 ha land:
-- **Table:**
-  | Metric                  | USD          | TRY            |
-  |-------------------------|--------------|----------------|
-  | Initial Investment      | $279,000.00  | 11,160,000.00  |
-  | Annual Operating Costs  | $65,480.00   | 2,619,200.00   |
-  | Annual Revenue          | $230,628.00  | 9,225,120.00   |
-  | Annual Profit           | $165,148.00  | 6,605,920.00   |
-  | Payback Period          | 1.57 years   | 1.57 years     |
-- **Plot:** Interactive line plot showing revenue, costs, and profit over 5 years.
-- **Summary:** Details investment, profit, payback, and risks like price fluctuations and disease.
+- `app.py`: Main code.
+- `requirements.txt`: Dependencies.
+- `README.md`: This file.
+- `screenshot.png`: App screenshot (optional).
 
 ## Contributing
-Contributions are welcome! To contribute:
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/your-feature`).
-3. Make changes and commit (`git commit -m "Add your feature"`).
-4. Push to the branch (`git push origin feature/your-feature`).
-5. Open a pull request.
-
-Please ensure code follows PEP 8 style guidelines and includes comments for clarity.
+Fork, branch, PR. Follow PEP 8.
 
 ## License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+MIT License.
 
-## Contact
-For questions or feedback, please open an issue on GitHub or contact [your-email@example.com](mailto:your-email@example.com).
