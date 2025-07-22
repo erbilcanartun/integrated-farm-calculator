@@ -15,7 +15,7 @@ with tab1:
     num_cows = st.number_input("Number of Cows", min_value=10, max_value=500, value=100, step=10, key="farm_cows")
     deeded_land = st.number_input("Deeded Land (hectares)", min_value=10, max_value=200, value=51, step=5)
     grassland_area = st.number_input("Grassland Area (hectares)", min_value=0, max_value=200, value=35, step=5)
-    greenhouse_area = st.number_input("Greenhouse Area (hectares)", min_value=0.5, max_value=10.0, value=1.5, step=0.5)
+    greenhouse_area = st.number_input("Greenhouse Area (hectares)", min_value=0.01, max_value=10.0, value=1.5, step=0.1)  # Updated min_value to 0.01 for smaller areas
 
     # Dairy product portions
     st.subheader("Dairy Product Allocation (% of Milk Production)")
@@ -51,13 +51,13 @@ with tab1:
     st.header("Editable Constants with Presets")
     preset_options = ["Low", "Mid", "High", "Custom"]
 
-    # Function to get value with preset
+    # Updated function: Always show number_input with reasonable default (mid/custom), update value on preset change
     def get_value_with_preset(label, presets, default_mid, min_val=0.0, step=0.1, key=None):
-        preset = st.selectbox(f"{label} Preset", preset_options, index=1, key=key)  # Default Mid
-        if preset == "Custom":
-            return st.number_input(f"{label} (Custom)", value=default_mid, min_value=min_val, step=step, key=key+"_custom")
-        else:
-            return presets[preset.lower()]
+        preset = st.selectbox(f"{label} Preset", preset_options, index=3, key=key)  # Default to Custom
+        selected_value = presets.get(preset.lower(), default_mid)  # Get preset value or default to mid for Custom
+        if preset != "Custom":
+            st.write(f"Selected {preset} value: {selected_value}")  # Indicate chosen value
+        return st.number_input(f"{label}", value=selected_value, min_value=min_val, step=step, key=key+"_input")
 
     # Currency
     usd_to_try = get_value_with_preset("USD to TRY Exchange Rate", {"low": 30.0, "mid": 40.0, "high": 50.0}, 40.0, step=1.0)
@@ -341,7 +341,7 @@ with tab2:
 
     # Isolated Energy Consumption for Greenhouse
     st.subheader("Energy Consumption for Greenhouse")
-    iso_gh_area = st.number_input("Greenhouse Area (hectares)", min_value=0.5, max_value=10.0, value=1.5, step=0.5, key="iso_gh")
+    iso_gh_area = st.number_input("Greenhouse Area (hectares)", min_value=0.01, max_value=10.0, value=1.5, step=0.1, key="iso_gh")  # Updated min_value
     iso_gh_elec = get_value_with_preset("Electricity Need (kWh/ha/year)", {"low": 500000.0, "mid": 1000000.0, "high": 1500000.0}, 1000000.0, key="iso_gh_elec")
 
     elec_year_gh = iso_gh_area * iso_gh_elec
