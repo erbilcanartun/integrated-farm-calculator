@@ -13,19 +13,19 @@ with tab1:
     # Input section for full farm
     st.header("Input Farm Parameters")
     num_cows = st.number_input("Number of Cows", min_value=10, max_value=500, value=100, step=10, key="farm_cows")
-    deeded_land = st.number_input("Deeded Land (hectares)", min_value=10, max_value=200, value=51, step=5)
-    grassland_area = st.number_input("Grassland Area (hectares)", min_value=0, max_value=200, value=35, step=5)
-    greenhouse_area = st.number_input("Greenhouse Area (hectares)", min_value=0.01, max_value=10.0, value=1.5, step=0.1)  # Updated min_value to 0.01 for smaller areas
+    deeded_land = st.number_input("Deeded Land (hectares)", min_value=10, max_value=200, value=51, step=5, key="deeded_land")
+    grassland_area = st.number_input("Grassland Area (hectares)", min_value=0, max_value=200, value=35, step=5, key="grassland_area")
+    greenhouse_area = st.number_input("Greenhouse Area (hectares)", min_value=0.01, max_value=10.0, value=1.5, step=0.1, key="greenhouse_area")  # Updated min_value to 0.01 for smaller areas
 
     # Dairy product portions
     st.subheader("Dairy Product Allocation (% of Milk Production)")
     col1, col2, col3 = st.columns(3)
     with col1:
-        pct_milk = st.slider("Raw Milk (%)", 0, 100, 100)
+        pct_milk = st.slider("Raw Milk (%)", 0, 100, 100, key="pct_milk")
     with col2:
-        pct_cheese = st.slider("Cheese (%)", 0, 100, 0)
+        pct_cheese = st.slider("Cheese (%)", 0, 100, 0, key="pct_cheese")
     with col3:
-        pct_cream = st.slider("Cream (%)", 0, 100, 0)
+        pct_cream = st.slider("Cream (%)", 0, 100, 0, key="pct_cream")
     if pct_milk + pct_cheese + pct_cream != 100:
         st.error("Allocations must sum to 100%.")
     else:
@@ -37,60 +37,51 @@ with tab1:
     # Greenhouse product choice
     st.subheader("Greenhouse Product")
     product_options = ["Tomato", "Lettuce", "Strawberry", "Cucumber"]
-    selected_product = st.selectbox("Select Product", product_options)
+    selected_product = st.selectbox("Select Product", product_options, key="selected_product")
 
-    # Preset ranges for product yields (tons/ha/year) and prices (USD/kg)
-    product_presets = {
-        "Tomato": {"yield": {"low": 100.0, "mid": 300.0, "high": 600.0}, "price": {"low": 0.1, "mid": 0.25, "high": 0.4}},
-        "Lettuce": {"yield": {"low": 200.0, "mid": 350.0, "high": 500.0}, "price": {"low": 0.5, "mid": 1.0, "high": 1.5}},
-        "Strawberry": {"yield": {"low": 50.0, "mid": 75.0, "high": 100.0}, "price": {"low": 1.0, "mid": 2.0, "high": 3.0}},
-        "Cucumber": {"yield": {"low": 200.0, "mid": 350.0, "high": 500.0}, "price": {"low": 0.2, "mid": 0.35, "high": 0.5}}
+    # Preset ranges for product yields (tons/ha/year) and prices (USD/kg) - used for display only
+    product_ranges = {
+        "Tomato": {"yield": "Low: 100, Mid: 300, High: 600", "price": "Low: 0.1, Mid: 0.25, High: 0.4", "mid_yield": 300.0, "mid_price": 0.25},
+        "Lettuce": {"yield": "Low: 200, Mid: 350, High: 500", "price": "Low: 0.5, Mid: 1.0, High: 1.5", "mid_yield": 350.0, "mid_price": 1.0},
+        "Strawberry": {"yield": "Low: 50, Mid: 75, High: 100", "price": "Low: 1.0, Mid: 2.0, High: 3.0", "mid_yield": 75.0, "mid_price": 2.0},
+        "Cucumber": {"yield": "Low: 200, Mid: 350, High: 500", "price": "Low: 0.2, Mid: 0.35, High: 0.5", "mid_yield": 350.0, "mid_price": 0.35}
     }
 
-    # Editable constants with presets
-    st.header("Editable Constants with Presets")
-    preset_options = ["Low", "Mid", "High", "Custom"]
-
-    # Updated function: Always show number_input with reasonable default (mid/custom), update value on preset change
-    def get_value_with_preset(label, presets, default_mid, min_val=0.0, step=0.1, key=None):
-        preset = st.selectbox(f"{label} Preset", preset_options, index=3, key=key)  # Default to Custom
-        selected_value = presets.get(preset.lower(), default_mid)  # Get preset value or default to mid for Custom
-        if preset != "Custom":
-            st.write(f"Selected {preset} value: {selected_value}")  # Indicate chosen value
-        return st.number_input(f"{label}", value=selected_value, min_value=min_val, step=step, key=key+"_input")
-
+    # Editable constants - only number_input with mid defaults, range indicated in label
+    st.header("Editable Constants")
+    
     # Currency
-    usd_to_try = get_value_with_preset("USD to TRY Exchange Rate", {"low": 30.0, "mid": 40.0, "high": 50.0}, 40.0, step=1.0)
+    usd_to_try = st.number_input("USD to TRY Exchange Rate (Low: 30, Mid: 40, High: 50)", value=40.0, step=1.0, key="usd_to_try")
 
     # Dairy
-    milk_yield_liters = get_value_with_preset("Daily Milk Yield per Cow (liters)", {"low": 20.0, "mid": 25.0, "high": 30.0}, 25.0)
-    milk_price_usd = get_value_with_preset("Milk Price (USD/liter)", {"low": 0.3, "mid": 0.4, "high": 0.5}, 0.4, step=0.05)
-    cheese_price_usd = get_value_with_preset("Cheese Price (USD/kg)", {"low": 4.0, "mid": 5.0, "high": 6.0}, 5.0, step=0.5)
-    cream_price_usd = get_value_with_preset("Cream Price (USD/kg)", {"low": 2.0, "mid": 3.0, "high": 4.0}, 3.0, step=0.5)
+    milk_yield_liters = st.number_input("Daily Milk Yield per Cow (liters) (Low: 20, Mid: 25, High: 30)", value=25.0, key="milk_yield_liters")
+    milk_price_usd = st.number_input("Milk Price (USD/liter) (Low: 0.3, Mid: 0.4, High: 0.5)", value=0.4, step=0.05, key="milk_price_usd")
+    cheese_price_usd = st.number_input("Cheese Price (USD/kg) (Low: 4, Mid: 5, High: 6)", value=5.0, step=0.5, key="cheese_price_usd")
+    cream_price_usd = st.number_input("Cream Price (USD/kg) (Low: 2, Mid: 3, High: 4)", value=3.0, step=0.5, key="cream_price_usd")
 
     # Greenhouse
-    yield_tons_ha = get_value_with_preset(f"{selected_product} Yield (tons/ha/year)", product_presets[selected_product]["yield"], product_presets[selected_product]["yield"]["mid"])
-    product_price_usd = get_value_with_preset(f"{selected_product} Price (USD/kg)", product_presets[selected_product]["price"], product_presets[selected_product]["price"]["mid"], step=0.05)
+    yield_tons_ha = st.number_input(f"{selected_product} Yield (tons/ha/year) ({product_ranges[selected_product]['yield']})", value=product_ranges[selected_product]["mid_yield"], step=10.0, key="yield_tons_ha")
+    product_price_usd = st.number_input(f"{selected_product} Price (USD/kg) ({product_ranges[selected_product]['price']})", value=product_ranges[selected_product]["mid_price"], step=0.05, key="product_price_usd")
 
     # Biogas/Energy
-    manure_per_cow_kg = get_value_with_preset("Daily Manure per Cow (kg)", {"low": 40.0, "mid": 60.0, "high": 80.0}, 40.0, step=5.0)
-    vs_fraction = get_value_with_preset("Volatile Solids Fraction", {"low": 0.08, "mid": 0.096, "high": 0.12}, 0.096, step=0.01)
-    biogas_yield_m3_kg = get_value_with_preset("Biogas Yield (m³/kg VS)", {"low": 0.2, "mid": 0.3, "high": 0.45}, 0.3, step=0.05)
-    energy_per_m3_kwh = get_value_with_preset("Energy per m³ Biogas (kWh)", {"low": 5.0, "mid": 6.0, "high": 7.0}, 6.0, step=0.5)
-    electrical_efficiency = get_value_with_preset("CHP Electrical Efficiency", {"low": 0.3, "mid": 0.35, "high": 0.4}, 0.35, step=0.05)
-    electricity_sell_price_usd = get_value_with_preset("Electricity Sell Price (USD/kWh)", {"low": 0.08, "mid": 0.1, "high": 0.12}, 0.1, step=0.01)
-    electricity_purchase_price_usd = get_value_with_preset("Electricity Purchase Price (USD/kWh)", {"low": 0.12, "mid": 0.15, "high": 0.18}, 0.15, step=0.01)
+    manure_per_cow_kg = st.number_input("Daily Manure per Cow (kg) (Low: 40, Mid: 60, High: 80)", value=60.0, step=5.0, key="manure_per_cow_kg")
+    vs_fraction = st.number_input("Volatile Solids Fraction (Low: 0.08, Mid: 0.096, High: 0.12)", value=0.096, step=0.01, key="vs_fraction")
+    biogas_yield_m3_kg = st.number_input("Biogas Yield (m³/kg VS) (Low: 0.2, Mid: 0.3, High: 0.45)", value=0.3, step=0.05, key="biogas_yield_m3_kg")
+    energy_per_m3_kwh = st.number_input("Energy per m³ Biogas (kWh) (Low: 5, Mid: 6, High: 7)", value=6.0, step=0.5, key="energy_per_m3_kwh")
+    electrical_efficiency = st.number_input("CHP Electrical Efficiency (Low: 0.3, Mid: 0.35, High: 0.4)", value=0.35, step=0.05, key="electrical_efficiency")
+    electricity_sell_price_usd = st.number_input("Electricity Sell Price (USD/kWh) (Low: 0.08, Mid: 0.1, High: 0.12)", value=0.1, step=0.01, key="electricity_sell_price_usd")
+    electricity_purchase_price_usd = st.number_input("Electricity Purchase Price (USD/kWh) (Low: 0.12, Mid: 0.15, High: 0.18)", value=0.15, step=0.01, key="electricity_purchase_price_usd")
 
     # Feed
-    feed_dm_per_cow_kg = get_value_with_preset("Annual Feed DM per Cow (kg)", {"low": 6000.0, "mid": 6570.0, "high": 7000.0}, 6570.0, step=100.0)
-    grassland_yield_kg_ha = get_value_with_preset("Grassland Yield (kg DM/ha/year)", {"low": 4000.0, "mid": 5250.0, "high": 6500.0}, 5250.0, step=250.0)
-    feed_crop_yield_kg_ha = get_value_with_preset("Feed Crop Yield (kg DM/ha/year)", {"low": 12000.0, "mid": 15000.0, "high": 18000.0}, 15000.0, step=1000.0)
-    purchased_feed_cost_usd = get_value_with_preset("Purchased Feed Cost (USD/kg DM)", {"low": 0.08, "mid": 0.1, "high": 0.12}, 0.1, step=0.01)
+    feed_dm_per_cow_kg = st.number_input("Annual Feed DM per Cow (kg) (Low: 6000, Mid: 6570, High: 7000)", value=6570.0, step=100.0, key="feed_dm_per_cow_kg")
+    grassland_yield_kg_ha = st.number_input("Grassland Yield (kg DM/ha/year) (Low: 4000, Mid: 5250, High: 6500)", value=5250.0, step=250.0, key="grassland_yield_kg_ha")
+    feed_crop_yield_kg_ha = st.number_input("Feed Crop Yield (kg DM/ha/year) (Low: 12000, Mid: 15000, High: 18000)", value=15000.0, step=1000.0, key="feed_crop_yield_kg_ha")
+    purchased_feed_cost_usd = st.number_input("Purchased Feed Cost (USD/kg DM) (Low: 0.08, Mid: 0.1, High: 0.12)", value=0.1, step=0.01, key="purchased_feed_cost_usd")
 
     # Costs
-    greenhouse_cost_per_ha = get_value_with_preset("Greenhouse Construction Cost (USD/ha)", {"low": 300000.0, "mid": 500000.0, "high": 700000.0}, 500000.0, step=50000.0)
-    farm_elec_per_cow_kwh_year = get_value_with_preset("Farm Electricity Need (kWh/cow/year)", {"low": 400.0, "mid": 500.0, "high": 600.0}, 500.0, step=50.0)
-    gh_elec_per_ha_kwh_year = get_value_with_preset("Greenhouse Electricity Need (kWh/ha/year)", {"low": 500000.0, "mid": 1000000.0, "high": 1500000.0}, 1000000.0, step=100000.0)
+    greenhouse_cost_per_ha = st.number_input("Greenhouse Construction Cost (USD/ha) (Low: 300000, Mid: 500000, High: 700000)", value=500000.0, step=50000.0, key="greenhouse_cost_per_ha")
+    farm_elec_per_cow_kwh_year = st.number_input("Farm Electricity Need (kWh/cow/year) (Low: 400, Mid: 500, High: 600)", value=500.0, step=50.0, key="farm_elec_per_cow_kwh_year")
+    gh_elec_per_ha_kwh_year = st.number_input("Greenhouse Electricity Need (kWh/ha/year) (Low: 500000, Mid: 1000000, High: 1500000)", value=1000000.0, step=100000.0, key="gh_elec_per_ha_kwh_year")
 
     if pct_milk + pct_cheese + pct_cream == 100:
         # Calculations function updated for dairy portions and product
@@ -298,14 +289,14 @@ with tab1:
         df_financial_summary = pd.DataFrame(table_data)
         st.table(df_financial_summary)
 
-        feed_status = "Self-sufficient in feed." if results['Purchased Feed Kg'] == 0 else f"Requires purchasing {results['Purchased Feed Kg']:,.0f} kg of feed annually at ${results['Purchased Feed Cost Year']:,.2f} USD/year."
-        energy_status = "Energy self-sufficient with surplus electricity for revenue." if results['Daily Products']['Shortfall Electricity (kWh/day)'] == 0 else f"Requires purchasing {results['Shortfall Kwh Year']:,.0f} kWh of electricity annually at ${results['Electricity Purchase Cost Year']:,.2f} USD/year."
+        feed_status = "Self-sufficient in feed." if results['Purchased Feed Kg'] == 0 else f"Requires purchasing {results['Purchased Feed Kg']:,.0f} kg of feed annually at {results['Purchased Feed Cost Year']:,.2f} USD/year."
+        energy_status = "Energy self-sufficient with surplus electricity for revenue." if results['Daily Products']['Shortfall Electricity (kWh/day)'] == 0 else f"Requires purchasing {results['Shortfall Kwh Year']:,.0f} kWh of electricity annually at {results['Electricity Purchase Cost Year']:,.2f} USD/year."
         st.markdown(f"""
         **Feed Status:** {feed_status}  
 
         **Energy Status:** {energy_status}  
 
-        The farm uses biogas for on-site electricity, selling surplus at ${electricity_sell_price_usd:.2f} USD/kWh and purchasing any shortfall at ${electricity_purchase_price_usd:.2f} USD/kWh.
+        The farm uses biogas for on-site electricity, selling surplus at {electricity_sell_price_usd:.2f} USD/kWh and purchasing any shortfall at {electricity_purchase_price_usd:.2f} USD/kWh.
         """)
 
         st.subheader("Risks and Mitigations")
@@ -322,11 +313,11 @@ with tab2:
     # Isolated Energy Production from Cows
     st.subheader("Energy Production from Cows")
     iso_cows = st.number_input("Number of Cows for Calculation", min_value=10, max_value=500, value=100, step=10, key="iso_cows")
-    iso_manure = get_value_with_preset("Daily Manure per Cow (kg)", {"low": 40.0, "mid": 60.0, "high": 80.0}, 40.0, key="iso_manure")
-    iso_vs = get_value_with_preset("VS Fraction", {"low": 0.08, "mid": 0.096, "high": 0.12}, 0.096, key="iso_vs")
-    iso_biogas = get_value_with_preset("Biogas Yield (m³/kg VS)", {"low": 0.2, "mid": 0.3, "high": 0.45}, 0.3, key="iso_biogas")
-    iso_energy = get_value_with_preset("Energy per m³ (kWh)", {"low": 5.0, "mid": 6.0, "high": 7.0}, 6.0, key="iso_energy")
-    iso_eff = get_value_with_preset("Efficiency", {"low": 0.3, "mid": 0.35, "high": 0.4}, 0.35, key="iso_eff")
+    iso_manure = st.number_input("Daily Manure per Cow (kg) (Low: 40, Mid: 60, High: 80)", value=60.0, step=5.0, key="iso_manure")
+    iso_vs = st.number_input("VS Fraction (Low: 0.08, Mid: 0.096, High: 0.12)", value=0.096, step=0.01, key="iso_vs")
+    iso_biogas = st.number_input("Biogas Yield (m³/kg VS) (Low: 0.2, Mid: 0.3, High: 0.45)", value=0.3, step=0.05, key="iso_biogas")
+    iso_energy = st.number_input("Energy per m³ (kWh) (Low: 5, Mid: 6, High: 7)", value=6.0, step=0.5, key="iso_energy")
+    iso_eff = st.number_input("Efficiency (Low: 0.3, Mid: 0.35, High: 0.4)", value=0.35, step=0.05, key="iso_eff")
 
     manure_day = iso_cows * iso_manure
     vs_day = manure_day * iso_vs
@@ -342,7 +333,7 @@ with tab2:
     # Isolated Energy Consumption for Greenhouse
     st.subheader("Energy Consumption for Greenhouse")
     iso_gh_area = st.number_input("Greenhouse Area (hectares)", min_value=0.01, max_value=10.0, value=1.5, step=0.1, key="iso_gh")  # Updated min_value
-    iso_gh_elec = get_value_with_preset("Electricity Need (kWh/ha/year)", {"low": 500000.0, "mid": 1000000.0, "high": 1500000.0}, 1000000.0, key="iso_gh_elec")
+    iso_gh_elec = st.number_input("Electricity Need (kWh/ha/year) (Low: 500000, Mid: 1000000, High: 1500000)", value=1000000.0, step=100000.0, key="iso_gh_elec")
 
     elec_year_gh = iso_gh_area * iso_gh_elec
     elec_month_gh = elec_year_gh / 12
